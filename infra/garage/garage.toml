@@ -1,0 +1,31 @@
+metadata_dir = "/var/lib/garage/meta"
+data_dir = "/var/lib/garage/data"
+db_engine = "lmdb"
+
+# Keep metadata_fsync = true so LMDB never corrupts on container restart
+metadata_fsync = true
+data_fsync = false
+disable_scrub = true
+
+# Bypass zstd compression since WARC files are already gzipped (.warc.gz)
+compression_level = "none"
+
+replication_factor = 1
+
+rpc_bind_addr = "[::]:3901"
+rpc_public_addr = "127.0.0.1:3901"
+# Must be exactly 64 hex characters (32 bytes)
+rpc_secret = "4425f5c26c5e11581d622398967c62b30589552d0b443e6c73422a23f18c7712"
+
+[s3_api]
+s3_region = "us-east-1"
+api_bind_addr = "[::]:3900"
+root_domain = ".s3.garage.localhost"
+
+[s3_web]
+bind_addr = "[::]:3902"
+root_domain = ".web.garage.localhost"
+
+[admin]
+api_bind_addr = "[::]:3903"
+admin_token = "crawler-admin-secret-token"

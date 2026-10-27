@@ -1,0 +1,85 @@
+services:
+  coredns:
+    image: coredns/coredns:latest
+    command: -conf /Corefile
+    volumes:
+      - ./infra/coredns/Corefile:/Corefile:ro,Z
+    ports:
+      - "1053:53/udp"
+      - "1053:53/tcp"
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+
+  valkey:
+    image: valkey/valkey-bundle:latest
+    ports:
+      - "6379:6379"
+    # valkey-bundle loads valkey-bloom automatically; we only pass memory limits
+    command: [ "valkey-server", "--save", "", "--appendonly", "no", "--maxmemory", "256mb", "--maxmemory-policy", "noeviction" ]
+    deploy:
+      resources:
+        limits:
+          memory: 300M
+
+  kafka:
+  
+    image: redpandadata/redpanda:latest
+    command:
+      - redpanda
+      - start
+      - --smp 1
+      - --memory 512M
+      - --overprovisioned
+      - --kafka-addr internal://0.0.0.0:9092,external://0.0.0.0:19092
+      - --advertise-kafka-addr internal://kafka:9092,external://localhost:19092
+    ports:
+      - "19092:19092"
+    deploy:
+      resources:
+        limits:
+          memory: 600M
+
+  cassandra:
+    image: scylladb/scylla:latest
+    command: --smp 1 --memory 512M --overprovisioned 1 --developer-mode 1
+    volumes:
+      - ./infra/scylla/schema.cql:/schema.cql:ro,Z
+    ports:
+      - "9042:9042"
+    deploy:
+      resources:
+        limits:
+          memory: 1100M
+
+  garage:
+    image: dxflrs/garage:v2.5.0
+    volumes:
+      - ./infra/garage/garage.toml:/etc/garage.toml:ro,Z
+      - ./data/garage/meta:/var/lib/garage/meta:Z
+      - ./data/garage/data:/var/lib/garage/data:Z
+    ports:
+      - "3900:3900" # S3 API port (replaces MinIO's 9000)
+      - "3903:3903" # Admin API port
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+
+  garage-webui:
+    image: khairul169/garage-webui:latest
+    environment:
+      API_BASE_URL: "http://garage:3903"
+      S3_ENDPOINT_URL: "http://garage:3900"
+      API_ADMIN_KEY: "crawler-admin-secret-token"
+    volumes:
+      - ./infra/garage/garage.toml:/etc/garage.toml:ro,Z
+    ports:
+      - "3909:3909" # Web UI in your browser!
+    depends_on:
+      - garage
+    deploy:
+      resources:
+        limits:
+          memory: 32M

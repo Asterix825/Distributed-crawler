@@ -1,0 +1,10 @@
+.:53 {
+    forward . 1.1.1.1 8.8.8.8 {
+        max_concurrent 1000
+    }
+    cache 3600 {
+        success 50000
+        denial 25000
+    }
+    errors
+}
