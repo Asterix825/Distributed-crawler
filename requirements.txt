@@ -1,0 +1,11 @@
+aiohttp==3.14.5
+aiodns==4.0.4
+aiokafka==0.14.0
+minio==7.2.20
+python-dotenv==1.2.4
+scylla-driver==3.29.12
+selectolax==1.0.2
+valkey==6.2.0
+warcio==1.8.1
+Protego==0.7.0
+xxhash==4.0.2
